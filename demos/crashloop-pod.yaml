@@ -1,1 +1,31 @@
-# crashloop pod demo (placeholder)
+apiVersion: v1
+kind: Pod
+metadata:
+  name: crashloop-busybox
+  labels:
+    app: crashloop-demo
+  annotations:
+    description: "Pod intentionally exits to produce a CrashLoopBackOff for local demos"
+spec:
+  restartPolicy: Always
+  containers:
+  - name: busybox
+    image: busybox:1.36
+    imagePullPolicy: IfNotPresent
+    # This command prints a message then exits with non-zero code => CrashLoopBackOff
+    command:
+    - sh
+    - -c
+    - |
+      echo "crashloop demo: exiting now"; sleep 1; exit 1
+    resources:
+      requests:
+        cpu: "10m"
+        memory: "16Mi"
+      limits:
+        cpu: "100m"
+        memory: "64Mi"
+
+# Notes:
+# - Apply with `kubectl apply -f demos/crashloop-pod.yaml` then `kubectl get pods -w` to observe CrashLoopBackOff.
+# - Intended for local clusters (minikube/kind) and operator development where the operator watches pod events.
