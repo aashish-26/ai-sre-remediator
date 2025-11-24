@@ -1,0 +1,4 @@
+apiVersion: v2
+name: ai-sre-operator
+version: 0.1.0
+description: "Chart for ai-sre-operator (placeholder)"

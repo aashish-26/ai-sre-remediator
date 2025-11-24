@@ -1,139 +1,152 @@
-Project name
-
-AI-Driven Kubernetes Auto-Remediation Platform (ai-sre-remediator)
+# AI-Driven Kubernetes Auto-Remediation Platform (ai-sre-remediator)
 
 One-line summary
+-----------------
 
 Kubernetes operator + MCP-backed reasoning that ingests alerts/events, proposes safe remediation from a whitelist of templates, and (optionally) executes approved actions — fully auditable and GitOps-friendly.
 
-Goals
+## Table of contents
 
-Learn Kubernetes internals, Operators, GitOps, observability, and SRE practices by building a production-ish system end-to-end.
+- [Goals](#goals)
+- [Architecture](#architecture)
+- [Quickstart](#quickstart)
+- [Internals & Components](#internals--components)
+- [CRD & Prompt Schema](#crd--prompt-schema)
+- [Security & Safety](#security--safety)
+- [Development](#development)
+- [CI / Tests](#ci--tests)
+- [Contributing](#contributing)
 
-Integrate MCP (Model Context Protocol) / LLM reasoning securely to convert cluster context into constrained remediation recommendations.
+## Goals
 
-Ship a demonstrable repo: deploy to minikube, simulate incidents, see recommendations, apply safe fixes, and produce auditable postmortems.
+- Prototype an operator (Python + `kopf`) that reasons about incidents via an MCP client and suggests constrained remediations.
+- Provide a demo flow (simulate alert → operator recommends → dry-run / apply) suitable for minikube.
+- Be auditable and GitOps-friendly: every recommended decision is logged and can be committed to a repo for traceability.
 
-Scope & non-goals
+## Architecture
 
-In scope
+High level flow:
 
-Prototype operator (Python/kopf for speed; Go/controller-runtime optional later).
+- Event source (Prometheus Alertmanager, K8s Events, or simulated webhook) → Operator
+- Operator collects context (recent logs, pod spec, metrics snapshot)
+- Operator calls MCP (Model Context Protocol) with a strict prompt template and JSON schema
+- MCP returns a constrained JSON recommendation (template id, command, confidence)
+- Validator checks recommendation against a signed template registry
+- Executor runs in dry-run or apply mode (RBAC-limited) and emits audit artifacts (logs, git commit, or issue)
+- Observability collects metrics and traces for operator actions
 
-Prometheus + Alertmanager + Grafana + Loki + Jaeger for observability.
+Mermaid diagram (rendered in supported viewers):
 
-MCP client with strict prompt templates and schema-validated responses.
+```mermaid
+flowchart LR
+  A[Event Source\n(Alertmanager, K8s Events, Webhook)] --> B[Operator]
+  B --> C[Context Builder\n(logs, pod spec, metrics)]
+  C --> D[MCP Client\n(strict prompt, schema)]
+  D --> E[Decision Validator\n(whitelist + signatures)]
+  E --> F[Executor\n(dry-run / apply)]
+  F --> G[Audit & GitOps\n(logs, commits, issues)]
+  F --> H[Observability\n(prometheus, grafana, loki)]
+```
 
-Whitelisted remediation templates and a dry-run executor, plus approval flow.
+## Quickstart
 
-CI pipeline that builds and deploys to minikube and runs integration tests.
+Prerequisites:
 
-Out of scope (for initial delivery)
+- `minikube` (or a Kubernetes cluster)
+- `kubectl` configured
+- Python 3.11+ recommended
 
-Multi-cluster production rollouts, complex RBAC cross-account plumbing, or hosted LLM infra beyond your lab/dev MCP instances. These can be added later.
+Windows PowerShell (developer local run):
 
-Architecture (short)
-
-Event sources: Prometheus alerts, Kubernetes Events, Webhooks (simulated alerts).
-
-Operator (in-cluster controller): Watches alerts/CRs/events; builds context (recent logs, pod spec, metrics summary); calls MCP with constrained prompt; receives JSON recommendation.
-
-Decision validator: Validates recommendation against a signed, versioned whitelist of templates.
-
-Executor: Dry-run mode prints command; apply mode executes templated kubectl/K8s API calls with RBAC-limited service account.
-
-Audit & GitOps: Each decision written to logs + commit/issue in a repo for traceability.
-
-Observability: Prometheus metrics, Grafana dashboard, Loki logs, Jaeger traces.
-
-Human interface: Slack bot / web UI / CLI for approvals and visibility.
-
-Quickstart (developer, first 10 minutes)
-
+```powershell
+python -m venv .venv; .venv\Scripts\Activate.ps1
+pip install -r requirements.txt
 minikube start --driver=docker
-
-git clone <your-repo> → cd ai-sre-remediator
-
-Create and apply demo crashloop pod:
-
 kubectl apply -f demos/crashloop-pod.yaml
-
-
-Run the prototype operator (local) to confirm you see pod events:
-
-source venv/bin/activate
-python operator.py
-
-Security & safety rules (must follow)
-
-Never send raw secrets or tokens to MCP. Strip and redact.
-
-Templates → only preapproved, parameterized actions. No arbitrary shell.
-
-Default to dry-run. Apply only via approval or strict policy (signature + confidence threshold).
-
-Least privilege: operator service account must only have the smallest set of verbs/resources.
-
-Audit trail: trace-id, prompt hash, MCP response, template id, executor outcome — commit or append to durable store.
-
-Deliverables (what this repo will contain)
-
-operator/ — controller code (initially Python kopf).
-
-templates/ — remediation templates (YAML) with IDs and risk levels.
-
-pkg/mcp/ — client for MCP server.
-
-demos/ — sample failing apps + simulation scripts.
-
-manifests/ — RBAC, Deployment, CRD (IncidentRemediation).
-
-.github/workflows/ci.yml — builds, tests, deploy to minikube.
-
-docs/ — architecture, runbook, security, demo steps.
-
-charts/ — Helm chart for operator.
-
-test/ — integration and chaos test scripts.
-
-How to demo (short script)
-# start minikube
-minikube start --driver=docker
-
-# create demo crashloop pod
-kubectl apply -f demos/crashloop-pod.yaml
-
-# run operator locally (will log recommendations)
-source venv/bin/activate
-python operator.py
-
-# simulate an alert (if you use SimulatedAlert CRD)
+python operator/operator.py
 kubectl apply -f demos/simulated-alert.yaml
+```
 
-Contributing / workflow
+macOS / Linux (bash):
 
-Work on feature branches: feature/<short>; PRs required to merge to main.
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+minikube start --driver=docker
+kubectl apply -f demos/crashloop-pod.yaml
+python operator/operator.py
+```
 
-Templates only change via PR and require signed commit or 2 approvers.
+## Internals & Components
 
-CI runs unit tests, lint, and minikube integration tests.
+- **Operator (`operator/`)**: kopf-based controller that watches alerts/CRs and orchestrates the remediation flow.
+  - `operator/operator.py` — controller entrypoint for local testing
+  - `operator/pkg/` — operator helpers (MCP client wrapper, validator, executor, template registry)
+- **API (`api/v1/`)**: CRD YAMLs for `IncidentRemediation` (used for simulated alerts and operator-driven decisions).
+- **Templates (`templates/`)**: Pre-approved remediation templates (YAML) with metadata (id, risk level, params).
+- **Validator**: Ensures MCP response maps to an allowed template id and parameters are within policy; verifies signatures if present.
+- **Executor**: Two modes — `dry-run` (prints the actions) and `apply` (performs K8s API calls using the operator's service account).
+- **Audit & GitOps**: Each decision can be recorded by committing a short JSON/YAML file to a tracked repo or by writing to an audit log store.
+- **Observability**: Operator exposes Prometheus metrics; use Grafana/Loki/Jaeger to visualize and trace decisions.
 
-Useful references (internal)
+## CRD & Prompt Schema
 
-CRD: api/v1/incidentremediation_types.go (or YAML for Python).
+Operator expects MCP to return a single JSON object matching this schema (example):
 
-Prompt templates: prompts/remediation_prompt.json.tpl.
-
-Template registry: templates/ (include schema file templates/schema.json).
-
-Appendix: example prompt schema (MUST use)
-
-MCP request should ask for a single JSON response matching this schema:
-
+```json
 {
-  "action": "string (one of allowed template ids)",
-  "template_id": "string",
-  "command": "string (kubectl or k8s patch snippet)",
-  "confidence": "number 0.0-1.0",
-  "rationale": "string < 60 words"
+  "action": "restart-pod",
+  "template_id": "restart-pod-v1",
+  "command": "kubectl delete pod <pod-name> -n <ns>",
+  "confidence": 0.93,
+  "rationale": "Container image pull failed repeatedly; restarting should recover pod."
 }
+```
+
+The in-repo CRD (simplified) is available at `api/v1/incidentremediation_crd.yaml` and should be used for simulated alerts.
+
+## Security & Safety
+
+- Never send secrets or raw tokens to MCP. Always redact and only send minimal context.
+- Templates must be whitelisted; the operator refuses arbitrary shell execution.
+- Default behavior: `dry-run`. `apply` requires explicit approval and a confidence threshold + signed template.
+- Least privilege: the operator service account should only have verbs required for the whitelisted templates.
+
+## Development
+
+- Create and activate a virtualenv, then install requirements:
+
+```powershell
+python -m venv .venv; .venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+- Run unit tests:
+
+```powershell
+pytest -q
+```
+
+- Useful files:
+  - `operator/requirements.txt` — operator-specific runtime deps
+  - `templates/` — remediation templates and `templates/schema.json` (template schema)
+
+## CI / Tests
+
+- CI pipeline (`.github/workflows/ci.yml`) will run lint, unit tests, and optionally an integration job that uses a minikube runner.
+
+## Contributing
+
+- Work on `feature/<short>` branches and open PRs to `main`.
+- Template changes require code review and at least two approvers (or signed commits) because they affect safety and RBAC.
+
+---
+
+If you'd like, I can also:
+
+- Add a rendered `templates/schema.json` and a few example remediation templates.
+- Fill `operator/operator.py` with a minimal kopf skeleton that registers handlers for simulated alerts.
+- Create a `requirements-dev.txt` and pin exact versions.
+
+Tell me which of the above you'd like next.
