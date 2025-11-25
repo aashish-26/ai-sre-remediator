@@ -1,0 +1,71 @@
+AI-SRE Remediator — What it is, why it matters, and how it works
+
+1) The Short Version
+
+Think of this as a calm, sensible guardian for your Kubernetes cluster. When something breaks, the system detects the failure, reasons about safe options, and applies a controlled fix — all while keeping humans in the loop and an immutable audit trail.
+
+2) The Flow (high level)
+
+- Something goes wrong — for example, a pod enters CrashLoopBackOff.
+- The Operator detects the event (it watches pods, alerts and cluster signals).
+- The Operator gathers context (metadata, recent logs, status) and asks MCP for a recommendation.
+- MCP responds with a structured, schema-bound remediation suggestion (restart, scale, rollback, etc.).
+- The Operator validates the suggestion against a template whitelist and safety rules.
+- If permitted, the Operator executes the remediation and records an audit entry.
+
+What this project builds
+
+- Event watcher: continuous cluster observability.
+- Decision engine: AI-assisted, rule-constrained recommendations.
+- Remediation executor: safe, templated actions.
+- Template whitelist & safety layer: prevents arbitrary commands.
+- Observability pipeline: metrics, logs, traces for every decision.
+- CI/CD + docs + demos: reproducible deployment and onboarding.
+
+3) Why Templates Exist
+
+Templates are the safety contract. Instead of free-form commands, AI must return one of a small set of vetted templates such as `restart-pod`, `scale-deployment`, `rollout-undo`, `drain-node`, or `delete-failed-job`.
+
+Each template is a compact schema: an ID, the allowed kubectl-style action, required parameters, a risk rating, and whether human approval is required. Anything outside that whitelist is rejected — turning AI into a supervised advisor, not a root shell.
+
+4) Why the Operator Exists
+
+The Operator is the brain and the gatekeeper. Responsibilities:
+
+- Watch resources and alerts
+- Collect rich context (status, events, logs)
+- Query MCP with structured prompts
+- Validate responses against the template registry
+- Apply safe remediations and emit telemetry
+- Write auditable entries for every action
+
+It’s the single place that enforces safety and observability.
+
+5) Why MCP is Used
+
+MCP is the controlled AI gateway. It ensures responses are:
+
+- Schema-bound (strict JSON)
+- Parsable and explainable
+- Configurable with redaction and context policies
+- Less prone to hallucination because of structure and constraints
+
+MCP is not handing over control to AI — it’s producing reasoned, constrained recommendations the Operator can act on.
+
+6) Why Auditing & Observability Matter
+
+Every remediation is recorded: context, prompt, MCP reply, template used, parameters, time, and trace IDs. Records are stored as JSON/markdown and become the ground truth for postmortems and compliance.
+
+Observability components (Prometheus, Grafana, Alertmanager, Loki, Jaeger) make decisions visible, measurable, and traceable — turning incidental fixes into learnable signals.
+
+7) Why You’ll Learn From This
+
+This project is a practical training ground for the skills SREs and platform engineers need today:
+
+- Building Kubernetes operators
+- Designing safe automation with templates and RBAC
+- Integrating AI as a constrained decision assistant
+- Implementing observability and audit trails
+- Shipping CI/CD, demos, and reproducible workflows
+
+In short: it’s not magic — it’s safe, auditable, AI-assisted SRE engineering.

@@ -1,1 +1,7 @@
-# restart pod remediation template (placeholder)
+id: restart-pod
+description: >-
+	Restart pod by deleting it so the ReplicaSet/Deployment brings up a fresh
+	pod. Risk: low (stateless-only).
+risk: low
+kubectl: kubectl delete pod {{pod_name}} -n {{namespace}} --wait=false
+applyable_without_approval: false
