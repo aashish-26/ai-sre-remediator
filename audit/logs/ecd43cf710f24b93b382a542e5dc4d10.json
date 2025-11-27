@@ -1,0 +1,37 @@
+{
+  "trace": {
+    "id": "ecd43cf710f24b93b382a542e5dc4d10",
+    "timestamp": 1764069224.5017786,
+    "iso_timestamp": "2025-11-25T11:13:44.501779Z",
+    "cmd": "# params: namespace, pod_name\nkubectl delete pod crashloop-busybox -n default",
+    "stdout": "simulated dry-run output",
+    "success": true
+  },
+  "context": {
+    "namespace": "default",
+    "pod_name": "crashloop-busybox",
+    "logs": "crashloop demo: exiting now\n",
+    "metrics": {
+      "mock_cpu_usage": "50m",
+      "mock_memory_usage": "128Mi",
+      "restart_count": 9
+    },
+    "event_type": null
+  },
+  "mcp_resp": {
+    "action": "execute",
+    "template_id": "restart-pod",
+    "confidence": 0.9,
+    "rationale": "Mock recommendation based on restart_count=9, phase=",
+    "pod_name": "crashloop-busybox",
+    "namespace": "default",
+    "command": "# params: namespace, pod_name\nkubectl delete pod crashloop-busybox -n default"
+  },
+  "template": {
+    "id": "restart-pod",
+    "description": "Restart pod by deleting it so the controller recreates a fresh pod.\n",
+    "kubectl": "# params: namespace, pod_name\nkubectl delete pod {{ pod_name }} -n {{ namespace }}\n"
+  },
+  "command": "# params: namespace, pod_name\nkubectl delete pod crashloop-busybox -n default",
+  "recorded": 1764069224
+}

@@ -1,0 +1,64 @@
+name: MCP Validation
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  KIND_CLUSTER: mcp-ci
+  KUBECONFIG: ${{ github.workspace }}/.kube/config
+
+jobs:
+  validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install kubectl
+        run: |
+          set -euo pipefail
+          mkdir -p "${HOME}/.local/bin"
+          curl -fsSL https://dl.k8s.io/release/$(curl -fsSL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl -o kubectl
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/kubectl
+          kubectl version --client
+
+      - name: Install kind
+        run: |
+          set -euo pipefail
+          curl -Lo kind https://kind.sigs.k8s.io/dl/v0.23.0/kind-linux-amd64
+          chmod +x kind
+          sudo mv kind /usr/local/bin/kind
+          kind version
+
+      - name: Create kind cluster
+        run: |
+          set -euo pipefail
+          mkdir -p "$(dirname "${KUBECONFIG}")"
+          kind create cluster --name "${KIND_CLUSTER}" --wait 180s
+
+      - name: Install uv / uvx
+        run: |
+          python3 -m pip install --user uv
+          echo "${HOME}/.local/bin" >> $GITHUB_PATH
+          uvx --version
+
+      - name: Run MCP validations
+        run: |
+          set -euo pipefail
+          mkdir -p ci-artifacts/logs
+          kubectl cluster-info > ci-artifacts/logs/kubectl-cluster-info.log 2>&1
+          kubectl get nodes -o wide > ci-artifacts/logs/kubectl-nodes.log 2>&1
+          ~/.local/bin/uvx kubernetes-mcp-server@latest --kubeconfig "${KUBECONFIG}" --dry-run > ci-artifacts/logs/uvx-dry-run.log 2>&1
+          pwsh -File scripts/mcp-healthcheck.ps1 -SkipProcessCheck -AllowDryRunOnly -HealthEndpoint "http://127.0.0.1:8000/healthz" > ci-artifacts/logs/healthcheck.log 2>&1
+
+      - name: Upload validation logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: mcp-validation-logs
+          path: ci-artifacts/logs
+

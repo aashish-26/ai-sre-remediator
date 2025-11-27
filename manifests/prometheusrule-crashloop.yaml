@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: ai-operator-rules
+  namespace: monitoring
+spec:
+  groups:
+  - name: ai-sre-remediator.rules
+    rules:
+    - alert: PodHighRestartCount
+      expr: increase(kube_pod_container_status_restarts_total{job="kube-state-metrics"}[5m]) > 3
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} has restarted more than 3 times in 5m"
+        description: "Container restarts detected. Investigate CrashLoopBackOff."

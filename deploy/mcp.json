@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "kubernetes": {
+      "command": "uvx",
+      "args": [
+        "kubernetes-mcp-server@latest",
+        "--kubeconfig",
+        "{{KUBECONFIG_PATH}}",
+        "--addr",
+        "127.0.0.1:8000"
+      ],
+      "env": {
+        "KUBECONFIG": "{{KUBECONFIG_PATH}}",
+        "Q_LOG_LEVEL": "trace"
+      },
+      "workingDirectory": "."
+    }
+  },
+  "logging": {
+    "file": "%TEMP%\\\\q-run.log"
+  }
+}
+

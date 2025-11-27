@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: alertmanager-alertmanager
+  namespace: monitoring
+stringData:
+  alertmanager.yaml: |
+    global: {}
+    route:
+      receiver: 'operator-webhook'
+    receivers:
+    - name: 'operator-webhook'
+      webhook_configs:
+      - url: 'http://ai-operator-svc.default.svc.cluster.local:5001/alert'

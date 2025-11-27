@@ -56,6 +56,12 @@ Prerequisites:
 - `kubectl` configured
 - Python 3.11+ recommended
 
+Windows one-click bootstrap:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\bootstrap-and-run.ps1
+```
+
 Windows PowerShell (developer local run):
 
 ```powershell
@@ -82,7 +88,7 @@ python operator/operator.py
 
 - **Operator (`operator/`)**: kopf-based controller that watches alerts/CRs and orchestrates the remediation flow.
   - `operator/operator.py` — controller entrypoint for local testing
-  - `operator/pkg/` — operator helpers (MCP client wrapper, validator, executor, template registry)
+  - `ai_operator/pkg/` — operator helpers (MCP client wrapper, validator, executor, template registry)
 - **API (`api/v1/`)**: CRD YAMLs for `IncidentRemediation` (used for simulated alerts and operator-driven decisions).
 - **Templates (`templates/`)**: Pre-approved remediation templates (YAML) with metadata (id, risk level, params).
 - **Validator**: Ensures MCP response maps to an allowed template id and parameters are within policy; verifies signatures if present.

@@ -1,0 +1,15 @@
+﻿[
+  {
+    "op": "replace",
+    "path": "/spec/template/spec/containers/0/command",
+    "value": [
+      "python",
+      "-m",
+      "kopf",
+      "run",
+      "/app/ai_operator/operator_main.py",
+      "--standalone",
+      "--verbose"
+    ]
+  }
+]

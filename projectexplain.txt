@@ -4,6 +4,12 @@ AI-SRE Remediator — What it is, why it matters, and how it works
 
 Think of this as a calm, sensible guardian for your Kubernetes cluster. When something breaks, the system detects the failure, reasons about safe options, and applies a controlled fix — all while keeping humans in the loop and an immutable audit trail.
 
+Windows bootstrap command (installs tooling, creates kubeconfig, launches MCP + Q):
+
+```
+powershell -ExecutionPolicy Bypass -File scripts\bootstrap-and-run.ps1
+```
+
 2) The Flow (high level)
 
 - Something goes wrong — for example, a pod enters CrashLoopBackOff.

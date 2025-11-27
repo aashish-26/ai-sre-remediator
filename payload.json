@@ -1,0 +1,11 @@
+﻿{
+  "receiver": "ai-sre-webhook",
+  "status": "firing",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": {"alertname": "PodCrashLooping", "namespace": "default", "pod": "demo-crashpod"},
+      "annotations": {"description": "Simulated CrashLoopBackOff for demo-crashpod"}
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: ai-sre-webhook-config
+  namespace: monitoring
+spec:
+  route:
+    groupBy: [ "alertname" ]
+    groupWait: 10s
+    groupInterval: 1m
+    repeatInterval: 1h
+    receiver: ai-sre-webhook
+  receivers:
+  - name: ai-sre-webhook
+    webhookConfigs:
+    - url: "http://alert-receiver.monitoring.svc.cluster.local:5000/alert"
+      httpConfig:
+        # Optional: set insecure_skip_verify if using self-signed certs in cluster tests
+        insecureSkipVerify: true

@@ -1,1 +1,14 @@
-# scale deployment remediation template (placeholder)
+﻿id: scale-deployment
+description: |
+  Scale a deployment to a desired replica count.
+kubectl: |
+  # params: namespace, deployment_name, replicas
+  kubectl scale deployment/{{ deployment_name }} --replicas={{ replicas }} -n {{ namespace }}
+id: scale-deployment
+description: |
+  Scale a deployment to a desired replica count.
+kubectl: |
+  # params: namespace, deployment_name, replicas
+  kubectl scale deployment/{{ deployment_name }} --replicas={{ replicas }} -n {{ namespace }}
+
+

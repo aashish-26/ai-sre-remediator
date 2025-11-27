@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: crashloop-rules
+  namespace: monitoring
+  labels:
+    role: alert-rules
+spec:
+  groups:
+  - name: crashloop.rules
+    rules:
+    - alert: PodCrashLooping
+      expr: |
+        kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"} > 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is CrashLoopBackOff"
+        description: "Container in pod {{ $labels.pod }} (namespace {{ $labels.namespace }}) is in CrashLoopBackOff for more than 1 minute."

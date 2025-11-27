@@ -1,7 +1,33 @@
+﻿id: restart-pod
+description: |
+  Restart pod by deleting it so the controller recreates a fresh pod.
+kubectl: |
+  # params: namespace, pod_name
+  kubectl delete pod {{ pod_name }} -n {{ namespace }}
 id: restart-pod
-description: >-
-	Restart pod by deleting it so the ReplicaSet/Deployment brings up a fresh
-	pod. Risk: low (stateless-only).
-risk: low
-kubectl: kubectl delete pod {{pod_name}} -n {{namespace}} --wait=false
-applyable_without_approval: false
+description: |
+  Restart pod by deleting it so the controller recreates a fresh pod.
+kubectl: |
+  # params: namespace, pod_name
+  kubectl delete pod {{ pod_name }} -n {{ namespace }}
+id: restart-pod
+description: |
+  Restart pod by deleting it so the controller recreates a fresh pod.
+kubectl: |
+  # params: namespace, pod_name
+  kubectl delete pod {{ pod_name }} -n {{ namespace }}
+id: restart-pod
+description: |
+    Restart pod by deleting it so the controller recreates a fresh pod.
+kubectl: |
+    # params: namespace, pod_name
+    kubectl delete pod {{ pod_name }} -n {{ namespace }}
+id: restart-pod
+description: |
+  Restart pod by deleting it so the controller recreates a fresh pod.
+kubectl: |
+  # params: namespace, pod_name
+  kubectl delete pod {{ pod_name }} -n {{ namespace }}
+
+
+

@@ -1,0 +1,37 @@
+{
+  "trace": {
+    "id": "ea8f8e6432064c44a2481d57d7d14554",
+    "timestamp": 1764069224.5042694,
+    "iso_timestamp": "2025-11-25T11:13:44.504269Z",
+    "cmd": "# params: namespace, pod_name\nkubectl delete pod kube-controller-manager-minikube -n kube-system",
+    "stdout": "simulated dry-run output",
+    "success": true
+  },
+  "context": {
+    "namespace": "kube-system",
+    "pod_name": "kube-controller-manager-minikube",
+    "logs": "I1125 11:12:00.598696       1 shared_informer.go:356] \"Caches are synced\" controller=\"ReplicaSet\"\nI1125 11:12:00.592506       1 shared_informer.go:356] \"Caches are synced\" controller=\"resource quota\"\nI1125 11:12:00.593728       1 shared_informer.go:356] \"Caches are synced\" controller=\"resource quota\"\nI1125 11:12:00.600072       1 shared_informer.go:356] \"Caches are synced\" controller=\"endpoint\"\nI1125 11:12:00.600073       1 shared_informer.go:356] \"Caches are synced\" controller=\"persistent volume\"\nI1125 11:12:00.601832       1 shared_informer.go:356] \"Caches are synced\" controller=\"HPA\"\nI1125 11:12:00.991734       1 shared_informer.go:356] \"Caches are synced\" controller=\"garbage collector\"\nI1125 11:12:00.991791       1 garbagecollector.go:154] \"Garbage collector: all resource monitors have synced\" logger=\"garbage-collector-controller\"\nI1125 11:12:00.991807       1 garbagecollector.go:157] \"Proceeding to collect garbage\" logger=\"garbage-collector-controller\"\nI1125 11:12:00.995780       1 shared_informer.go:356] \"Caches are synced\" controller=\"garbage collector\"\n",
+    "metrics": {
+      "mock_cpu_usage": "50m",
+      "mock_memory_usage": "128Mi",
+      "restart_count": 1
+    },
+    "event_type": null
+  },
+  "mcp_resp": {
+    "action": "execute",
+    "template_id": "restart-pod",
+    "confidence": 0.9,
+    "rationale": "Mock recommendation based on restart_count=1, phase=",
+    "pod_name": "kube-controller-manager-minikube",
+    "namespace": "kube-system",
+    "command": "# params: namespace, pod_name\nkubectl delete pod kube-controller-manager-minikube -n kube-system"
+  },
+  "template": {
+    "id": "restart-pod",
+    "description": "Restart pod by deleting it so the controller recreates a fresh pod.\n",
+    "kubectl": "# params: namespace, pod_name\nkubectl delete pod {{ pod_name }} -n {{ namespace }}\n"
+  },
+  "command": "# params: namespace, pod_name\nkubectl delete pod kube-controller-manager-minikube -n kube-system",
+  "recorded": 1764069224
+}

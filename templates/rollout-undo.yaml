@@ -1,1 +1,14 @@
-# rollout undo remediation template (placeholder)
+﻿id: rollout-undo
+description: |
+  Undo latest rollout for a Deployment to revert to previous ReplicaSet.
+kubectl: |
+  # params: namespace, deployment_name
+  kubectl rollout undo deployment/{{ deployment_name }} -n {{ namespace }}
+id: rollout-undo
+description: |
+  Undo latest rollout for a Deployment to revert to previous ReplicaSet.
+kubectl: |
+  # params: namespace, deployment_name
+  kubectl rollout undo deployment/{{ deployment_name }} -n {{ namespace }}
+
+
